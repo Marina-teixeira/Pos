@@ -7,7 +7,41 @@
 
     ;(async () => {
         const params = await LanguageModel.params()
-        console.log("Language Model Params:", params)
-    })
+        console.log("Language Model Params:", params);
+        const temperature = params.defaultTemperature
+        const topK = params.defaultTopK
+
+        const initialPrompts = [
+            {
+                role: 'system',
+                content: `Você é um assistente de IA que responde de forma clara e objetiva.`
+            }
+        ]
+
+        const question = 'Quem inventou o JavaScript?'
+        output.innerHTML = "Gerando resposta..."
+
+        const session = await LanguageModel.create({
+            expectedInputLanguages: ["pt"],
+            temperature,
+            topK,
+            initialPrompts,
+        })
+
+        const responseStream = await session.promptStreaming([
+            {
+                role: 'user',
+                content: question
+            }
+        ])
+        output.innerHTML = ""
+        let fullText = ""
+        for await (const token of responseStream) {
+            fullText += token;
+            output.innerHTML = markdown.toHTML(fullText);
+
+            // console.log(token)
+        }
+    })();
 
 </script>
